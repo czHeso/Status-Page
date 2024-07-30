@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Status Page</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Status Page</h1>
+        <div id="status-summary" class="status-summary">
+            Checking overall status...
+        </div>
+        <div class="status-group">
+            <h2><i class="fas fa-box icon"></i> Web 1</h2>
+            <p>Kontrola dostupnosti webu.</p>
+            <div id="status-web1" class="status">
+                <span>Checking status...</span>
+            </div>
+        </div>
+        <div class="status-group">
+            <h2><i class="fas fa-shopping-cart icon"></i> Web 2</h2>
+            <p>Kontrola dostupnosti webu.</p>
+            <div id="status-web2" class="status">
+                <span>Checking status...</span>
+            </div>
+        </div>
+        <div class="status-group">
+            <h2><i class="fas fa-exclamation-circle icon"></i> TestDown Status</h2>
+            <p>Testování, zda funguje down status</p>
+            <div id="status-testdown" class="status">
+                <span>Checking status...</span>
+            </div>
+        </div>
+        <div class="status-group">
+            <h2><i class="fas fa-comments icon"></i> Teams</h2>
+            <p>Kontrola dostupnosti služby.</p>
+            <div id="status-teams" class="status">
+                <span>Checking status...</span>
+            </div>
+        </div>
+        <div class="status-group">
+            <h2><i class="fas fa-code icon"></i> HTTPBin API</h2>
+            <p>Kontrola testovacího API.</p>
+            <div id="status-httpbin" class="status">
+                <span>Checking status...</span>
+            </div>
+        </div>
+    </div>
+    <script>
+        async function checkStatus(url, elementId, retries = 3, delay = 2000, method = 'HEAD') {
+            const statusElement = document.getElementById(elementId).querySelector('span');
+            const proxyUrl = 'https://api.allorigins.win/raw?url='; 
+
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(`${proxyUrl}${encodeURIComponent(url)}`, { method });
+
+                    if (response.ok) {
+                        statusElement.textContent = 'Operational';
+                        statusElement.parentElement.classList.add('up');
+                        statusElement.parentElement.classList.remove('down');
+                        updateOverallStatus();
+                        return;
+                    }
+                } catch (error) {
+                    
+                }
+
+                
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+
+            
+            statusElement.textContent = 'Problem detected.';
+            statusElement.parentElement.classList.add('down');
+            statusElement.parentElement.classList.remove('up');
+            updateOverallStatus();
+        }
+
+        function updateOverallStatus() {
+            const statusSummary = document.getElementById('status-summary');
+            const statuses = document.querySelectorAll('.status');
+
+            let allOperational = true;
+
+            statuses.forEach(status => {
+                if (status.classList.contains('down')) {
+                    allOperational = false;
+                }
+            });
+
+            if (allOperational) {
+                statusSummary.textContent = 'All systems operational';
+                statusSummary.classList.add('ok');
+                statusSummary.classList.remove('issues');
+            } else {
+                statusSummary.textContent = 'We are experiencing issues';
+                statusSummary.classList.add('issues');
+                statusSummary.classList.remove('ok');
+            }
+        }
+
+        
+        window.onload = function() {
+            checkStatus('https://www.google.com/', 'status-web1');
+            checkStatus('https://www.snezik.cz', 'status-web2');
+            checkStatus('https://www.sneziiiiiiiiiiik.cz', 'status-testdown');
+            checkStatus('https://teams.microsoft.com/', 'status-teams');
+            checkStatus('https://httpbin.org/get', 'status-httpbin', 3, 2000, 'GET');
+        }
+    </script>
+</body>
+</html>
